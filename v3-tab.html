@@ -268,6 +268,8 @@ body.static .page{height:calc(100vh - 48px)}
 .fact{display:grid;grid-template-columns:70px minmax(0,1fr) 22px;gap:6px;align-items:start;padding:3px 0;font-size:12px}
 .fk{color:#9a9a9a}
 .fv{color:#ececec;font-weight:600}
+.fopen{color:#3d9bff;text-decoration:none;font-weight:700;margin-left:3px;font-size:12px}
+.fopen:hover{text-decoration:underline}
 .fv small{display:block;font-size:10.5px;color:#868686;font-weight:400}
 .fv small.w{color:var(--warn)}
 .flag{width:22px;height:20px;border:0;background:none;color:#6e6e6e;border-radius:4px;display:grid;place-items:center;opacity:.7;transition:opacity .15s,background .15s,color .15s}
@@ -471,7 +473,7 @@ const PLAT = 'платформа · 14:02';
 const SUBJ = {v: 'математике', what: 'Предмет занятия', src: SLOTS};
 const DATE = {v: '19 ноября', what: 'Дата занятия', src: SLOTS};
 const TIME = {v: '18:00 МСК', what: 'Время занятия', src: SLOTS};
-const LINK = {v: 'https://meet.example/abc-123', what: 'Ссылка для подключения', src: PLAT, note: 'у репетитора 2 ссылки - выбрана постоянная', warn: true};
+const LK = {v: 'lk.umschool.one/schedule', what: 'Раздел ЛК «Расписание»', src: 'шаблон КС'};
 const PRODS = {v: 'оба продукта', what: 'Продукты', src: PLAT};
 
 const confAuto = (single, last) => [
@@ -486,13 +488,13 @@ const confManual = (found, last) => [
   ['ok', found, 30, 30],
   ['warn', last, 0, 15],
 ];
-const LINK_FACTS = 'занятие - Slots · 14:02; ссылка - платформа · 14:02';
+const LINK_FACTS = 'занятие - Slots · 14:02; ссылка - раздел ЛК «Расписание» из шаблона КС';
 
 const TOPICS = {
   link: {
-    name: 'Ссылка на занятие', sub: 'Математика · завтра', tpl: 'Ссылка на занятие', check: 'даты и ссылка сверены',
-    draft: ['Здравствуйте, Анна! Занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылка для подключения: ', LINK, '. Если не получится подключиться - напишите, поможем.'],
-    conf: confAuto('один вопрос', 'у репетитора 2 ссылки - выбрана постоянная'),
+    name: 'Ссылка на занятие', sub: 'Математика · завтра', tpl: 'Ссылка на занятие', check: 'дата и время сверены',
+    draft: ['Здравствуйте, Анна! Занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
+    conf: confAuto('один вопрос', 'на неделе 2 занятия - выбрано ближайшее'),
     why: {lead: 'Клиент спрашивает ссылку на завтрашнее занятие по математике.', items: [
       ['Слова темы', '«ссылка», «урок» в сообщении 14:02'],
       ['Шаблон КС', '«Ссылка на занятие», вариант «одно занятие» - завтра у ученика одно занятие'],
@@ -509,7 +511,7 @@ const TOPICS = {
   },
   schedule: {
     name: 'Расписание', sub: 'Математика', tpl: 'Расписание', check: 'дата и время сверены',
-    draft: ['Здравствуйте, Анна! Ближайшее занятие по ', SUBJ, ' - завтра, ', DATE, ', в ', TIME, '. Полное расписание - в личном кабинете, раздел «Расписание».'],
+    draft: ['Здравствуйте, Анна! Ближайшее занятие по ', SUBJ, ' - завтра, ', DATE, ', в ', TIME, '. Полное расписание - в личном кабинете: ', LK, '.'],
     conf: confManual('занятие найдено', 'в сообщении нет слов о расписании'),
     why: {lead: 'Тему выбрал менеджер вместо «Ссылка на занятие».', items: [
       ['Слова темы', 'в сообщении нет - тема выбрана вручную'],
@@ -527,8 +529,8 @@ const TOPICS = {
   },
 };
 const APPENDED = Object.assign({}, TOPICS.link, {
-  draft: ['Здравствуйте, Анна! Да, занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылка для подключения: ', LINK, '. Если не получится подключиться - напишите, поможем.'],
-  conf: confAuto('один вопрос в двух сообщениях', 'у репетитора 2 ссылки - выбрана постоянная'),
+  draft: ['Здравствуйте, Анна! Да, занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
+  conf: confAuto('один вопрос в двух сообщениях', 'на неделе 2 занятия - выбрано ближайшее'),
   why: {lead: 'Клиент уточнил время и ждёт ссылку - это один вопрос, черновик пересобран.', items: [
     ['Слова темы', '«ссылка», «урок» в 14:02 и «18:00» в 14:05'],
     ['Шаблон КС', '«Ссылка на занятие», вариант «одно занятие», начало «Да,»'],
@@ -542,13 +544,12 @@ const WHY_NOID = {lead: 'Тема понятна, но клиент не най�
   ['Клиент', 'у контакта ВКонтакте нет ID Умскул - факты не загружены']]};
 
 const FACTS = [
-  {k: 'lesson', l: 'Занятие', v: 'Математика, чт 19.11, 18:00 МСК', m: SLOTS},
-  {k: 'link', l: 'Ссылка', v: 'найдена', m: PLAT},
-  {k: 'prods', l: 'Продукты', v: '2 активных', m: PLAT},
-  {k: 'freeze', l: 'Заморозка', v: 'нет', m: PLAT},
+  {k: 'lesson', l: 'Занятие', v: 'Математика, чт 19.11, 18:00 МСК', m: SLOTS, url: 'https://platform.example/admin/lessons/5000001'},
+  {k: 'prods', l: 'Продукты', v: '2 активных', m: PLAT, url: 'https://platform.example/admin/customers/1000001/products'},
+  {k: 'freeze', l: 'Заморозка', v: 'нет', m: PLAT, url: 'https://platform.example/admin/customers/1000001/freezes'},
 ];
 const FACTS_MORE = [
-  {k: 'tutor', l: 'Репетитор', v: '2 ссылки, выбрана постоянная', m: PLAT},
+  {k: 'tutor', l: 'Репетитор', v: 'ID 2000001', m: PLAT, url: 'https://platform.example/admin/tutors/2000001'},
   {k: 'tz', l: 'Часовой пояс', v: 'МСК', m: 'профиль · 14:02'},
 ];
 const BAD = ['не та тема', 'неверный факт', 'устарело', 'не тот вариант шаблона', 'тон или длина', 'ответ не нужен'];
@@ -841,7 +842,7 @@ function fold(key, title, inner, summary = '') {
 function plaqueHTML() {
   const m = {
     self: ['bad', I.stop, 'Ответьте сами: просит вернуть деньги', 'Возвраты ведёт только сотрудник - черновика не будет.'],
-    noid: ['warn', I.idcard, 'Нет ID Умскул - добавьте почту клиента в карточку, подсказка обновится', ''],
+    noid: ['warn', I.idcard, 'Нет ID Умскул - заполните почту в карточке клиента, подсказка обновится сама', ''],
     appended: ['info', I.refresh, 'Клиент дописал 14:05 - черновик обновлён', ''],
   }[S.state];
   if (!m) return '';
@@ -888,7 +889,7 @@ function actionsHTML(d) {
 function factRow(f) {
   const fl = !!S.flags[f.k];
   return `<div class="fact${fl ? ' flagged' : ''}"><span class="fk">${f.l}</span>
-    <span class="fv">${f.v}<small class="${f.w ? 'w' : ''}" data-m="${esc(f.m)}">${fl ? 'отмечено: неверный факт' : f.m}</small></span>
+    <span class="fv">${f.v}${f.url ? ` <a class="fopen" href="${f.url}" target="_blank" rel="noopener" title="Открыть в платформе для сверки" aria-label="Открыть в платформе - ${f.l}">↗</a>` : ''}<small class="${f.w ? 'w' : ''}" data-m="${esc(f.m)}">${fl ? 'отмечено: неверный факт' : f.m}</small></span>
     <button class="flag" data-act="flag" data-k="${f.k}" title="Отметить: неверный факт" aria-label="Отметить: неверный факт - ${f.l}" aria-pressed="${fl}">${I.flag}</button></div>`;
 }
 function factsHTML() {
@@ -1027,7 +1028,7 @@ function renderStrip() {
   } else if (st === 'self') {
     cls = 'bad'; html = `${I.stop}<b>Ответьте сами: просит вернуть деньги</b>`;
   } else if (st === 'noid') {
-    cls = 'warn'; html = `${I.idcard}<b>Нет ID Умскул</b><span class="dim">· добавьте почту клиента в карточку, подсказка обновится</span>`;
+    cls = 'warn'; html = `${I.idcard}<b>Нет ID Умскул</b><span class="dim">· заполните почту в карточке клиента, подсказка обновится сама</span>`;
   } else {
     const d = cur();
     cls = 'ready'; html = `${I.spark}<b>Подсказка готова</b><span class="dim">· ${d.name} · ${confPct(d.conf)}%</span><span class="sp"></span><button class="btn xs primary" data-act="send" title="Отправить клиенту">${I.send}Отправить</button><button class="btn xs" data-act="edit" title="Вставить в поле ответа">${I.pencil}Изменить</button>`;
@@ -1135,7 +1136,7 @@ function pickTopic(k) {
   rebuild({text: `Пересобираю по теме «${name}»`, note: 'По шаблону КС этой темы, без модели', short: `тема «${name}»`, ms: 950}, () => { S.topic = k; });
 }
 function addEmail() {
-  rebuild({text: 'Почта добавлена - ищу клиента на платформе', note: 'Подсказка обновится через пару секунд', short: 'ищу клиента по почте', ms: 1300}, () => {
+  rebuild({text: 'В карточке появился ID Умскул - собираю подсказку', note: 'Обновилась сама после записи в карточку клиента', short: 'ID Умскул найден', ms: 1300}, () => {
     S.email = true;
     S.state = 'ready';
     markSeg('ready');
