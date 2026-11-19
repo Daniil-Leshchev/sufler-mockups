@@ -233,6 +233,11 @@ body.static .page{height:calc(100vh - 48px)}
 .sub.warn{background:rgba(242,198,92,.16);border-bottom-color:#e0b040}
 .sub.warn:hover,.sub.warn:focus{background:rgba(242,198,92,.28)}
 .draft-foot{margin-top:7px;font-size:11px;color:#8e8e8e}
+.rid-b{border:0;background:none;color:#a3a9ff;font:inherit;padding:0;cursor:pointer;text-decoration:underline dotted}
+.cwarn{list-style:none;margin:2px 0 7px;padding:0;font-size:11.5px;line-height:1.35;color:var(--warn)}
+.cwarn li{display:flex;gap:5px;align-items:flex-start}
+.cwarn svg{width:13px;height:13px;flex:none;margin-top:1px}
+.conf.open .cwarn{display:none}
 .c-ok{color:var(--ok)}.c-warn{color:var(--warn)}
 .draft.sent{opacity:.7}
 .draft.editing{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
@@ -473,6 +478,9 @@ const PLAT = 'платформа · 14:02';
 const SUBJ = {v: 'математике', what: 'Предмет занятия', src: SLOTS};
 const DATE = {v: '19 ноября', what: 'Дата занятия', src: SLOTS};
 const TIME = {v: '18:00 МСК', what: 'Время занятия', src: SLOTS};
+const DATE_W = Object.assign({}, DATE, {warn: true, note: 'на неделе 2 занятия - выбрано ближайшее, сверьте дату'});
+const RID = {link: 'r-7f3a2c', move: 'r-2b91d0', schedule: 'r-c4e817', freeze: 'r-91af5e', appended: 'r-e05b3a'};
+const rid = () => (S.state === 'appended' && S.topic === 'link') ? RID.appended : RID[S.topic];
 const LK = {v: 'lk.umschool.one/schedule', what: 'Раздел ЛК «Расписание»', src: 'шаблон КС'};
 const PRODS = {v: 'оба продукта', what: 'Продукты', src: PLAT};
 
@@ -493,7 +501,7 @@ const LINK_FACTS = 'занятие - Slots · 14:02; ссылка - раздел
 const TOPICS = {
   link: {
     name: 'Ссылка на занятие', sub: 'Математика · завтра', tpl: 'Ссылка на занятие', check: 'дата и время сверены',
-    draft: ['Здравствуйте, Анна! Занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
+    draft: ['Здравствуйте, Анна! Занятие по ', SUBJ, ' завтра, ', DATE_W, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
     conf: confAuto('один вопрос', 'на неделе 2 занятия - выбрано ближайшее'),
     why: {lead: 'Клиент спрашивает ссылку на завтрашнее занятие по математике.', items: [
       ['Слова темы', '«ссылка», «урок» в сообщении 14:02'],
@@ -529,7 +537,7 @@ const TOPICS = {
   },
 };
 const APPENDED = Object.assign({}, TOPICS.link, {
-  draft: ['Здравствуйте, Анна! Да, занятие по ', SUBJ, ' завтра, ', DATE, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
+  draft: ['Здравствуйте, Анна! Да, занятие по ', SUBJ, ' завтра, ', DATE_W, ', в ', TIME, '. Ссылку на подключение найдете в личном кабинете в расписании: ', LK, ' - там всегда актуальные ссылки. Если не получится подключиться - напишите, поможем.'],
   conf: confAuto('один вопрос в двух сообщениях', 'на неделе 2 занятия - выбрано ближайшее'),
   why: {lead: 'Клиент уточнил время и ждёт ссылку - это один вопрос, черновик пересобран.', items: [
     ['Слова темы', '«ссылка», «урок» в 14:02 и «18:00» в 14:05'],
@@ -862,15 +870,19 @@ function tlineHTML(d) {
       <button class="tsel" data-act="topic" data-pop aria-haspopup="menu" aria-expanded="false" title="${d.name} · ${d.sub} - выбрать другую тему">${d.name}${I.chevDown}</button>
       <button class="tconf" data-act="fold" data-k="conf" aria-expanded="${o}" title="Из чего сложилась уверенность"><span>уверенность</span><b>${p}%</b></button>
     </div>
+    ${p < 100 ? `<ul class="cwarn">${d.conf.filter(x => x[0] === 'warn').map(x => `<li>${I.warn}<span>${x[1]}</span></li>`).join('')}</ul>` : ''}
     <div class="reveal${o ? ' open' : ''}"><div class="reveal-in">${bd}</div></div></div>`;
+}
+function ridHTML() {
+  return `<span class="rid">· ID ответа <button class="rid-b" data-act="copy-rid" title="Скопировать ID ответа - приложите его к обратной связи">${rid()}</button></span>`;
 }
 function draftHTML(d) {
   if (V === 'v1' && S.editMode === 'card') {
     return `<div class="draft editing"><textarea class="draft-edit" aria-label="Черновик ответа" spellcheck="false">${esc(S.cardText)}</textarea>
-      <div class="draft-foot">Шаблон КС «${d.tpl}» · правка в карточке</div></div>`;
+      <div class="draft-foot">Шаблон КС «${d.tpl}» · правка в карточке ${ridHTML()}</div></div>`;
   }
   return `<div class="draft"><div class="draft-text">${partsHTML(d.draft)}</div>
-    <div class="draft-foot">Шаблон КС «${d.tpl}» · <span class="c-ok">✓ ${d.check}</span></div></div>`;
+    <div class="draft-foot">Шаблон КС «${d.tpl}» · <span class="c-ok">✓ ${d.check}</span> ${ridHTML()}</div></div>`;
 }
 function actionsHTML(d) {
   const v2stale = V === 'v2' && S.stale;
@@ -902,9 +914,9 @@ function whyHTML(why) {
   return fold('why', 'Почему так', `<p class="why-lead">${why.lead}</p><ul class="why">${why.items.map(([k, v]) => `<li><b>${k}</b> - ${v}</li>`).join('')}</ul>`);
 }
 function fbInner() {
-  if (S.bad) return `<div class="fb-done">${I.check}<span>Отмечено: ${esc(S.bad)}. Спасибо - учтём при доработке шаблонов.</span><button class="lnk" data-act="unbad">Отменить</button></div>`;
+  if (S.bad) return `<div class="fb-done">${I.check}<span>Отмечено: ${esc(S.bad)}. Отзыв ушёл с ID ответа ${rid()} - учтём при доработке шаблонов.</span><button class="lnk" data-act="unbad">Отменить</button></div>`;
   return `<div class="fb-row"><button class="btn sm" data-act="bad" data-pop aria-haspopup="menu" aria-expanded="false">${I.thumb}Плохо${I.chevDown}</button>
-    <span class="fb-hint">или ${I.flag} у строки в «Из платформы»</span></div>`;
+    <span class="fb-hint">или ${I.flag} у строки в «Из платформы» · ID ответа ${rid()} приложится сам</span></div>`;
 }
 function fbHTML() { return fold('fb', 'Отзыв', `<div id="fbBox">${fbInner()}</div>`, S.bad ? 'отмечено' : ''); }
 function historyHTML() {
@@ -1249,6 +1261,7 @@ document.addEventListener('click', e => {
     case 'bad': openPop(a, badPop()); break;
     case 'pick-bad': closePop(); S.bad = a.dataset.v; renderFb(); break;
     case 'unbad': S.bad = null; renderFb(); break;
+    case 'copy-rid': { const t = a.textContent; try { navigator.clipboard && navigator.clipboard.writeText(t); } catch (err) {} a.textContent = 'скопировано'; setTimeout(() => { a.textContent = t; }, 1200); break; }
     case 'flag': toggleFlag(k, a); break;
     case 'send': cardSend(); break;
     case 'edit': insertDraft(); break;
